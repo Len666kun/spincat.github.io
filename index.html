@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Spinning Cat Clicker</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background: #111;
+      color: #fff;
+      font-family: system-ui, -apple-system, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    #container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #cat-wrap {
+      width: min(70vw, 400px);
+      height: min(70vw, 400px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      will-change: transform;
+    }
+
+    #cat {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 8px;
+      /* убираем зелёный фон чуть-чуть, но оставляем мемным */
+      filter: drop-shadow(0 0 20px rgba(0,255,0,0.3));
+    }
+
+    #hud {
+      position: absolute;
+      top: 20px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    #speed-display {
+      font-size: clamp(24px, 6vw, 42px);
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-shadow: 0 0 15px #0f0;
+      margin-bottom: 6px;
+    }
+
+    #clicks-display {
+      font-size: 16px;
+      opacity: 0.7;
+    }
+
+    #hint {
+      position: absolute;
+      bottom: 30px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 15px;
+      opacity: 0.5;
+      pointer-events: none;
+      transition: opacity 0.4s;
+    }
+
+    #hint.hidden {
+      opacity: 0;
+    }
+
+    /* лёгкий пульс при очень высокой скорости */
+    @keyframes pulse {
+      0%, 100% { filter: drop-shadow(0 0 15px rgba(0,255,0,0.4)); }
+      50% { filter: drop-shadow(0 0 40px rgba(0,255,100,0.8)); }
+    }
+
+    .crazy #cat {
+      animation: pulse 0.3s infinite;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div id="hud">
+      <div id="speed-display">x1.00</div>
+      <div id="clicks-display">кликов: 0</div>
+    </div>
+
+    <div id="cat-wrap">
+      <img id="cat" src="cat.jpg" alt="spinning cat" draggable="false">
+    </div>
+
+    <div id="hint">Кликай как можно быстрее</div>
+  </div>
+
+  <audio id="music" src="spinning_cat.mp3" loop preload="auto"></audio>
+
+  <script>
+    const catWrap = document.getElementById('cat-wrap');
+    const cat = document.getElementById('cat');
+    const music = document.getElementById('music');
+    const speedDisplay = document.getElementById('speed-display');
+    const clicksDisplay = document.getElementById('clicks-display');
+    const hint = document.getElementById('hint');
+    const container = document.getElementById('container');
+
+    let totalClicks = 0;
+    let rotation = 0;
+    let currentRate = 1.0;
+    let targetRate = 1.0;
+
+    // клики за последние 1.2 секунды
+    const clickTimes = [];
+    const WINDOW = 1200; // мс
+
+    // минимальная и максимальная скорость
+    const MIN_RATE = 0.6;
+    const MAX_RATE = 8.0;
+
+    let started = false;
+    let lastFrame = performance.now();
+
+    function getClicksPerSecond() {
+      const now = performance.now();
+      // чистим старые клики
+      while (clickTimes.length && now - clickTimes[0] > WINDOW) {
+        clickTimes.shift();
+      }
+      return (clickTimes.length / WINDOW) * 1000;
+    }
+
+    function updateTargetRate() {
+      const cps = getClicksPerSecond();
+      // плавная кривая: чем быстрее кликаешь — тем жёстче разгон
+      // 0 cps → 1.0
+      // 5 cps → ~2.0
+      // 10 cps → ~3.5
+      // 15+ → летит в космос
+      let rate = 1 + Math.pow(cps / 4.5, 1.35);
+      rate = Math.min(MAX_RATE, Math.max(MIN_RATE, rate));
+      targetRate = rate;
+    }
+
+    function onClick(e) {
+      e.preventDefault();
+      totalClicks++;
+      clickTimes.push(performance.now());
+
+      if (!started) {
+        started = true;
+        music.play().catch(() => {});
+        hint.classList.add('hidden');
+      }
+
+      // небольшой "пинок" при каждом клике
+      targetRate = Math.min(MAX_RATE, targetRate + 0.08);
+      updateTargetRate();
+
+      clicksDisplay.textContent = `кликов: ${totalClicks}`;
+    }
+
+    // клик по всему экрану
+    container.addEventListener('pointerdown', onClick);
+    // чтобы на мобилках не было двойного срабатывания
+    document.addEventListener('gesturestart', e => e.preventDefault());
+
+    function animate(now) {
+      const dt = (now - lastFrame) / 1000;
+      lastFrame = now;
+
+      // плавно тянем текущую скорость к целевой
+      const lerp = 1 - Math.pow(0.001, dt); // очень отзывчиво
+      currentRate += (targetRate - currentRate) * lerp;
+
+      // если давно не кликали — медленно спадаем
+      updateTargetRate();
+      if (getClicksPerSecond() < 0.5) {
+        targetRate = Math.max(1.0, targetRate - dt * 0.35);
+      }
+
+      // крутим кота
+      // базовая скорость вращения × текущий rate
+      const spinSpeed = 180 * currentRate; // градусов в секунду при rate=1
+      rotation += spinSpeed * dt;
+      catWrap.style.transform = `rotate(${rotation}deg)`;
+
+      // звук
+      music.playbackRate = currentRate;
+
+      // отображение
+      speedDisplay.textContent = `x${currentRate.toFixed(2)}`;
+
+      // визуальный пиздец при высокой скорости
+      if (currentRate > 4.5) {
+        container.classList.add('crazy');
+      } else {
+        container.classList.remove('crazy');
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    requestAnimationFrame(animate);
+
+    // автозапуск на всякий (браузеры часто блокируют)
+    document.body.addEventListener('click', () => {
+      if (music.paused && started) music.play().catch(() => {});
+    }, { once: true });
+  </script>
+</body>
+</html>
