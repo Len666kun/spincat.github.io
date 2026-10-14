@@ -28,9 +28,6 @@ header span{display:block;color:var(--blue);margin-top:8px;text-shadow:0 0 8px v
 .tap:active{transform:scale(.98);background:#3c0c54}
 .row{display:flex;gap:9px;margin-top:10px}.secondary{flex:1;border:1px solid #315bff;border-radius:12px;background:#0b1028;color:#dffaff;padding:11px;font-weight:700}
 .note{text-align:center;color:#9b8dbd;font-size:.78rem;line-height:1.5;margin:15px 0}
-.player{margin-top:14px;border:1px solid #47336f;background:#080718;border-radius:14px;padding:12px}
-.player summary{cursor:pointer;color:#b9faff;font-weight:700}.player p{font-size:.8rem;color:#b7abc9}
-#ytbox{height:0;overflow:hidden;opacity:.01;pointer-events:none}
 .status{color:#7efbd1;font-size:.8rem;text-align:center;margin-top:8px;min-height:1.2em}
 @media(prefers-reduced-motion:reduce){.ring,.cat{animation-duration:1s}}
 </style>
@@ -50,49 +47,76 @@ header span{display:block;color:var(--blue);margin-top:8px;text-shadow:0 0 8px v
 <button class="tap" id="tapBtn">TAP TO SPIN</button>
 <div class="row"><button class="secondary" id="musicBtn">▶ ВКЛЮЧИТЬ МУЗЫКУ</button><button class="secondary" id="resetBtn">↻ СБРОС</button></div>
 <div class="status" id="status">Нажми TAP, чтобы запустить хаос.</div>
-<details class="player"><summary>🎵 Музыка из YouTube</summary><p>Источник: <a href="https://youtube.com/shorts/9D_4hE2cIQI?si=yjmbgGebQ0aqepPE" target="_blank" rel="noopener" style="color:#00eaff">открыть оригинальное видео</a>. Нажми «Включить музыку» — браузер загрузит встроенный плеер. YouTube может ограничивать доступные скорости воспроизведения.</p><div id="ytbox"><div id="ytplayer"></div></div></details>
-<div class="note">Работает в браузере · Добавь на главный экран для ощущения приложения<br>Музыка требует интернет и может потребовать нажатия для запуска.</div>
+<audio id="audio" src="spinning_cat.mp3" loop preload="auto"></audio>
+<div class="note">Работает в браузере · Добавь на главный экран для ощущения приложения<br>Положи файл <b>spinning_cat.mp3</b> рядом с этим html</div>
 </main>
 <script>
 const $=id=>document.getElementById(id);
-let clicks=0, lastTap=0, tapTimes=[], rate=1, player=null, playerReady=false, musicRequested=false;
+let clicks=0, tapTimes=[], rate=1;
+const audio=$('audio');
+
 function update(){
- const now=performance.now(); tapTimes=tapTimes.filter(t=>now-t<1800);
- const cps=tapTimes.length/1.8;
- const speed=Math.min(1+clicks*.025+cps*1.7,80);
- $('clicks').textContent=clicks.toLocaleString('ru-RU');
- $('speed').textContent=speed.toFixed(1)+'×';
- $('cat').style.animationDuration=(Math.max(.045,3/speed))+'s';
- document.querySelectorAll('.ring').forEach((el,i)=>el.style.animationDuration=(Math.max(.07,[4,2.5,6][i]/Math.min(speed,45)))+'s');
- const desired=[1,1.25,1.5,1.75,2].filter(x=>x<=Math.min(1+cps*.65+clicks*.002,2)).pop()||1;
- rate=desired; $('rate').textContent=rate.toFixed(2)+'×';
- if(playerReady && player && musicRequested){try{const avail=player.getAvailablePlaybackRates();let best=avail[0]||1;avail.forEach(x=>{if(x<=desired)best=x});player.setPlaybackRate(best)}catch(e){}}
+  const now=performance.now();
+  tapTimes=tapTimes.filter(t=>now-t<1800);
+  const cps=tapTimes.length/1.8;
+
+  // скорость кота — жёстче разгон
+  const speed=Math.min(1+clicks*.04+cps*2.4,120);
+  $('clicks').textContent=clicks.toLocaleString('ru-RU');
+  $('speed').textContent=speed.toFixed(1)+'×';
+  $('cat').style.animationDuration=(Math.max(.03,3/speed))+'s';
+  document.querySelectorAll('.ring').forEach((el,i)=>{
+    el.style.animationDuration=(Math.max(.05,[4,2.5,6][i]/Math.min(speed,60)))+'s';
+  });
+
+  // темп музыки — очень жёсткий разгон, потолок 12×
+  const desired=Math.min(1+cps*1.4+clicks*.008,12);
+  rate=desired;
+  $('rate').textContent=rate.toFixed(2)+'×';
+
+  if(audio && !audio.paused){
+    try{audio.playbackRate=rate}catch(e){}
+  }
 }
+
 function tap(){
- clicks++;tapTimes.push(performance.now());update();
- $('status').textContent=clicks%100===0?'НЕВЕРОЯТНО. '+clicks+' КЛИКОВ!':'КОТ НАБИРАЕТ ОБОРОТЫ!';
- if(navigator.vibrate)navigator.vibrate(8);
+  clicks++;
+  tapTimes.push(performance.now());
+  update();
+  $('status').textContent=clicks%100===0?'НЕВЕРОЯТНО. '+clicks+' КЛИКОВ!':'КОТ НАБИРАЕТ ОБОРОТЫ!';
+  if(navigator.vibrate)navigator.vibrate(8);
 }
-$('tapBtn').addEventListener('click',tap);$('catBtn').addEventListener('click',tap);
-$('resetBtn').addEventListener('click',()=>{clicks=0;tapTimes=[];update();$('status').textContent='Счёт сброшен. Начинай заново.'});
-$('musicBtn').addEventListener('click',()=>{
- musicRequested=true;
- if(playerReady){player.unMute();player.setVolume(80);player.playVideo();$('status').textContent='Музыка включена — кликай быстрее!';}
- else {$('status').textContent='Загружаем YouTube-плеер…';loadYT();}
+
+$('tapBtn').addEventListener('click',tap);
+$('catBtn').addEventListener('click',tap);
+
+$('resetBtn').addEventListener('click',()=>{
+  clicks=0;
+  tapTimes=[];
+  update();
+  $('status').textContent='Счёт сброшен. Начинай заново.';
 });
-function loadYT(){
- if(window.YT&&window.YT.Player){makePlayer();return}
- if(document.getElementById('ytapi'))return;
- const s=document.createElement('script');s.id='ytapi';s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s);
-}
-window.onYouTubeIframeAPIReady=makePlayer;
-function makePlayer(){
- if(player||!window.YT)return;
- player=new YT.Player('ytplayer',{height:'1',width:'1',videoId:'IxX_QHay02M',playerVars:{playsinline:1,controls:0,rel:0},events:{
- onReady:e=>{playerReady=true;e.target.setVolume(80);if(musicRequested){e.target.unMute();e.target.playVideo();$('status').textContent='Музыка включена — кликай быстрее!'}},
- onStateChange:e=>{if(e.data===YT.PlayerState.PLAYING){update();$('status').textContent='Музыка играет — кликай быстрее!'}},
- onError:()=>{$('status').textContent='YouTube не разрешил встроенное воспроизведение. Открой видео по ссылке.'}
- }});
-}
+
+$('musicBtn').addEventListener('click',()=>{
+  if(audio.paused){
+    audio.play().then(()=>{
+      audio.playbackRate=rate;
+      $('status').textContent='Музыка включена — кликай быстрее!';
+      $('musicBtn').textContent='⏸ ВЫКЛЮЧИТЬ МУЗЫКУ';
+    }).catch(()=>{
+      $('status').textContent='Браузер заблочил автоплей. Кликни ещё раз.';
+    });
+  }else{
+    audio.pause();
+    $('status').textContent='Музыка выключена.';
+    $('musicBtn').textContent='▶ ВКЛЮЧИТЬ МУЗЫКУ';
+  }
+});
+
+audio.addEventListener('play',()=>{audio.playbackRate=rate});
+audio.addEventListener('error',()=>{
+  $('status').textContent='Не нашёл spinning_cat.mp3. Положи файл рядом с html.';
+});
+
 update();
 </script></body></html>
