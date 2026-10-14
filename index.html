@@ -1,236 +1,98 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Spinning Cat Clicker</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
-
-    body {
-      background: #111;
-      color: #fff;
-      font-family: system-ui, -apple-system, sans-serif;
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-
-    #container {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #cat-wrap {
-      width: min(70vw, 400px);
-      height: min(70vw, 400px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      will-change: transform;
-    }
-
-    #cat {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      border-radius: 8px;
-      /* убираем зелёный фон чуть-чуть, но оставляем мемным */
-      filter: drop-shadow(0 0 20px rgba(0,255,0,0.3));
-    }
-
-    #hud {
-      position: absolute;
-      top: 20px;
-      left: 0;
-      right: 0;
-      text-align: center;
-      pointer-events: none;
-      z-index: 10;
-    }
-
-    #speed-display {
-      font-size: clamp(24px, 6vw, 42px);
-      font-weight: 800;
-      letter-spacing: 1px;
-      text-shadow: 0 0 15px #0f0;
-      margin-bottom: 6px;
-    }
-
-    #clicks-display {
-      font-size: 16px;
-      opacity: 0.7;
-    }
-
-    #hint {
-      position: absolute;
-      bottom: 30px;
-      left: 0;
-      right: 0;
-      text-align: center;
-      font-size: 15px;
-      opacity: 0.5;
-      pointer-events: none;
-      transition: opacity 0.4s;
-    }
-
-    #hint.hidden {
-      opacity: 0;
-    }
-
-    /* лёгкий пульс при очень высокой скорости */
-    @keyframes pulse {
-      0%, 100% { filter: drop-shadow(0 0 15px rgba(0,255,0,0.4)); }
-      50% { filter: drop-shadow(0 0 40px rgba(0,255,100,0.8)); }
-    }
-
-    .crazy #cat {
-      animation: pulse 0.3s infinite;
-    }
-  </style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#090014">
+<title>SPINNING CAT CLICKER</title>
+<style>
+:root{--pink:#ff28d7;--blue:#00eaff;--green:#54ffb0}
+*{box-sizing:border-box} body{margin:0;min-height:100svh;color:#fff;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(ellipse at 50% 40%,#24104a 0%,#0b0620 46%,#03040c 100%);overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(120deg,transparent 30%,#00eaff10,transparent 70%);animation:bg 5s linear infinite}
+@keyframes bg{to{transform:translateX(20%)}}
+.wrap{width:min(100%,520px);margin:auto;padding:22px 18px 28px;position:relative}
+header{text-align:center;font-weight:1000;font-style:italic;font-size:clamp(2rem,9vw,3.2rem);line-height:.9;letter-spacing:-1.5px;text-shadow:0 0 8px var(--pink),0 0 22px var(--pink),0 0 38px #00d9ff;color:#fff}
+header span{display:block;color:var(--blue);margin-top:8px;text-shadow:0 0 8px var(--blue),0 0 24px #0077ff}
+.sub{text-align:center;color:#c7b8ed;font-size:.82rem;letter-spacing:2px;margin:14px 0 18px}
+.stage{position:relative;margin:0 auto;width:min(78vw,340px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;touch-action:manipulation}
+.ring{position:absolute;inset:2%;border-radius:50%;border:3px solid var(--blue);box-shadow:0 0 10px var(--blue),inset 0 0 15px var(--blue);animation:spin 4s linear infinite}
+.ring.r2{inset:8%;border-color:var(--pink);box-shadow:0 0 10px var(--pink),inset 0 0 15px var(--pink);animation-direction:reverse;animation-duration:2.5s}
+.ring.r3{inset:14%;border:2px dashed var(--green);box-shadow:0 0 10px var(--green);animation-duration:6s}
+@keyframes spin{to{transform:rotate(360deg)}}
+.catbutton{position:relative;z-index:2;border:0;background:transparent;width:66%;height:66%;border-radius:50%;display:grid;place-items:center;cursor:pointer;filter:drop-shadow(0 0 14px #ff25d7);-webkit-tap-highlight-color:transparent;outline:none}
+.cat{font-size:clamp(7rem,35vw,10rem);line-height:1;display:block;user-select:none;transform-origin:center;animation:catspin 3s linear infinite;filter:drop-shadow(0 0 8px #aafcff)}
+@keyframes catspin{to{transform:rotate(360deg)}}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:22px 0 15px}
+.stat{border:1px solid #7b35ff;border-radius:14px;padding:12px 5px;text-align:center;background:#0a0822cc;box-shadow:0 0 12px #7b35ff33}
+.stat small{display:block;color:#c9b5ff;font-size:.75rem}.stat b{display:block;font-size:1.35rem;color:var(--blue);text-shadow:0 0 10px #00dfff}
+.tap{width:100%;border:2px solid var(--pink);border-radius:17px;background:linear-gradient(110deg,#250a49,#100b2e);color:white;padding:17px;font-size:1.45rem;font-weight:1000;font-style:italic;letter-spacing:3px;text-shadow:0 0 12px var(--pink);box-shadow:0 0 14px #ff28d777,inset 0 0 12px #00eaff22;touch-action:manipulation}
+.tap:active{transform:scale(.98);background:#3c0c54}
+.row{display:flex;gap:9px;margin-top:10px}.secondary{flex:1;border:1px solid #315bff;border-radius:12px;background:#0b1028;color:#dffaff;padding:11px;font-weight:700}
+.note{text-align:center;color:#9b8dbd;font-size:.78rem;line-height:1.5;margin:15px 0}
+.player{margin-top:14px;border:1px solid #47336f;background:#080718;border-radius:14px;padding:12px}
+.player summary{cursor:pointer;color:#b9faff;font-weight:700}.player p{font-size:.8rem;color:#b7abc9}
+#ytbox{height:0;overflow:hidden;opacity:.01;pointer-events:none}
+.status{color:#7efbd1;font-size:.8rem;text-align:center;margin-top:8px;min-height:1.2em}
+@media(prefers-reduced-motion:reduce){.ring,.cat{animation-duration:1s}}
+</style>
 </head>
-<body>
-  <div id="container">
-    <div id="hud">
-      <div id="speed-display">x1.00</div>
-      <div id="clicks-display">кликов: 0</div>
-    </div>
-
-    <div id="cat-wrap">
-      <img id="cat" src="cat.jpg" alt="spinning cat" draggable="false">
-    </div>
-
-    <div id="hint">Кликай как можно быстрее</div>
-  </div>
-
-  <audio id="music" src="spinning_cat.mp3" loop preload="auto"></audio>
-
-  <script>
-    const catWrap = document.getElementById('cat-wrap');
-    const cat = document.getElementById('cat');
-    const music = document.getElementById('music');
-    const speedDisplay = document.getElementById('speed-display');
-    const clicksDisplay = document.getElementById('clicks-display');
-    const hint = document.getElementById('hint');
-    const container = document.getElementById('container');
-
-    let totalClicks = 0;
-    let rotation = 0;
-    let currentRate = 1.0;
-    let targetRate = 1.0;
-
-    // клики за последние 1.2 секунды
-    const clickTimes = [];
-    const WINDOW = 1200; // мс
-
-    // минимальная и максимальная скорость
-    const MIN_RATE = 0.6;
-    const MAX_RATE = 8.0;
-
-    let started = false;
-    let lastFrame = performance.now();
-
-    function getClicksPerSecond() {
-      const now = performance.now();
-      // чистим старые клики
-      while (clickTimes.length && now - clickTimes[0] > WINDOW) {
-        clickTimes.shift();
-      }
-      return (clickTimes.length / WINDOW) * 1000;
-    }
-
-    function updateTargetRate() {
-      const cps = getClicksPerSecond();
-      // плавная кривая: чем быстрее кликаешь — тем жёстче разгон
-      // 0 cps → 1.0
-      // 5 cps → ~2.0
-      // 10 cps → ~3.5
-      // 15+ → летит в космос
-      let rate = 1 + Math.pow(cps / 4.5, 1.35);
-      rate = Math.min(MAX_RATE, Math.max(MIN_RATE, rate));
-      targetRate = rate;
-    }
-
-    function onClick(e) {
-      e.preventDefault();
-      totalClicks++;
-      clickTimes.push(performance.now());
-
-      if (!started) {
-        started = true;
-        music.play().catch(() => {});
-        hint.classList.add('hidden');
-      }
-
-      // небольшой "пинок" при каждом клике
-      targetRate = Math.min(MAX_RATE, targetRate + 0.08);
-      updateTargetRate();
-
-      clicksDisplay.textContent = `кликов: ${totalClicks}`;
-    }
-
-    // клик по всему экрану
-    container.addEventListener('pointerdown', onClick);
-    // чтобы на мобилках не было двойного срабатывания
-    document.addEventListener('gesturestart', e => e.preventDefault());
-
-    function animate(now) {
-      const dt = (now - lastFrame) / 1000;
-      lastFrame = now;
-
-      // плавно тянем текущую скорость к целевой
-      const lerp = 1 - Math.pow(0.001, dt); // очень отзывчиво
-      currentRate += (targetRate - currentRate) * lerp;
-
-      // если давно не кликали — медленно спадаем
-      updateTargetRate();
-      if (getClicksPerSecond() < 0.5) {
-        targetRate = Math.max(1.0, targetRate - dt * 0.35);
-      }
-
-      // крутим кота
-      // базовая скорость вращения × текущий rate
-      const spinSpeed = 180 * currentRate; // градусов в секунду при rate=1
-      rotation += spinSpeed * dt;
-      catWrap.style.transform = `rotate(${rotation}deg)`;
-
-      // звук
-      music.playbackRate = currentRate;
-
-      // отображение
-      speedDisplay.textContent = `x${currentRate.toFixed(2)}`;
-
-      // визуальный пиздец при высокой скорости
-      if (currentRate > 4.5) {
-        container.classList.add('crazy');
-      } else {
-        container.classList.remove('crazy');
-      }
-
-      requestAnimationFrame(animate);
-    }
-
-    requestAnimationFrame(animate);
-
-    // автозапуск на всякий (браузеры часто блокируют)
-    document.body.addEventListener('click', () => {
-      if (music.paused && started) music.play().catch(() => {});
-    }, { once: true });
-  </script>
-</body>
-</html>
+<body><main class="wrap">
+<header>SPINNING <span>CAT CLICKER</span></header>
+<div class="sub">MORE TAPS • MORE SPEED • MORE CHAOS</div>
+<div class="stage" aria-label="Кликни на кота">
+ <div class="ring"></div><div class="ring r2"></div><div class="ring r3"></div>
+ <button class="catbutton" id="catBtn" aria-label="Кликнуть на кота"><span class="cat" id="cat">🐈</span></button>
+</div>
+<section class="stats">
+ <div class="stat"><small>КЛИКИ</small><b id="clicks">0</b></div>
+ <div class="stat"><small>СКОРОСТЬ</small><b id="speed">1.0×</b></div>
+ <div class="stat"><small>ТЕМП МУЗЫКИ</small><b id="rate">1.0×</b></div>
+</section>
+<button class="tap" id="tapBtn">TAP TO SPIN</button>
+<div class="row"><button class="secondary" id="musicBtn">▶ ВКЛЮЧИТЬ МУЗЫКУ</button><button class="secondary" id="resetBtn">↻ СБРОС</button></div>
+<div class="status" id="status">Нажми TAP, чтобы запустить хаос.</div>
+<details class="player"><summary>🎵 Музыка из YouTube</summary><p>Источник: <a href="https://youtube.com/shorts/9D_4hE2cIQI?si=yjmbgGebQ0aqepPE" target="_blank" rel="noopener" style="color:#00eaff">открыть оригинальное видео</a>. Нажми «Включить музыку» — браузер загрузит встроенный плеер. YouTube может ограничивать доступные скорости воспроизведения.</p><div id="ytbox"><div id="ytplayer"></div></div></details>
+<div class="note">Работает в браузере · Добавь на главный экран для ощущения приложения<br>Музыка требует интернет и может потребовать нажатия для запуска.</div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let clicks=0, lastTap=0, tapTimes=[], rate=1, player=null, playerReady=false, musicRequested=false;
+function update(){
+ const now=performance.now(); tapTimes=tapTimes.filter(t=>now-t<1800);
+ const cps=tapTimes.length/1.8;
+ const speed=Math.min(1+clicks*.025+cps*1.7,80);
+ $('clicks').textContent=clicks.toLocaleString('ru-RU');
+ $('speed').textContent=speed.toFixed(1)+'×';
+ $('cat').style.animationDuration=(Math.max(.045,3/speed))+'s';
+ document.querySelectorAll('.ring').forEach((el,i)=>el.style.animationDuration=(Math.max(.07,[4,2.5,6][i]/Math.min(speed,45)))+'s');
+ const desired=[1,1.25,1.5,1.75,2].filter(x=>x<=Math.min(1+cps*.65+clicks*.002,2)).pop()||1;
+ rate=desired; $('rate').textContent=rate.toFixed(2)+'×';
+ if(playerReady && player && musicRequested){try{const avail=player.getAvailablePlaybackRates();let best=avail[0]||1;avail.forEach(x=>{if(x<=desired)best=x});player.setPlaybackRate(best)}catch(e){}}
+}
+function tap(){
+ clicks++;tapTimes.push(performance.now());update();
+ $('status').textContent=clicks%100===0?'НЕВЕРОЯТНО. '+clicks+' КЛИКОВ!':'КОТ НАБИРАЕТ ОБОРОТЫ!';
+ if(navigator.vibrate)navigator.vibrate(8);
+}
+$('tapBtn').addEventListener('click',tap);$('catBtn').addEventListener('click',tap);
+$('resetBtn').addEventListener('click',()=>{clicks=0;tapTimes=[];update();$('status').textContent='Счёт сброшен. Начинай заново.'});
+$('musicBtn').addEventListener('click',()=>{
+ musicRequested=true;
+ if(playerReady){player.unMute();player.setVolume(80);player.playVideo();$('status').textContent='Музыка включена — кликай быстрее!';}
+ else {$('status').textContent='Загружаем YouTube-плеер…';loadYT();}
+});
+function loadYT(){
+ if(window.YT&&window.YT.Player){makePlayer();return}
+ if(document.getElementById('ytapi'))return;
+ const s=document.createElement('script');s.id='ytapi';s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s);
+}
+window.onYouTubeIframeAPIReady=makePlayer;
+function makePlayer(){
+ if(player||!window.YT)return;
+ player=new YT.Player('ytplayer',{height:'1',width:'1',videoId:'IxX_QHay02M',playerVars:{playsinline:1,controls:0,rel:0},events:{
+ onReady:e=>{playerReady=true;e.target.setVolume(80);if(musicRequested){e.target.unMute();e.target.playVideo();$('status').textContent='Музыка включена — кликай быстрее!'}},
+ onStateChange:e=>{if(e.data===YT.PlayerState.PLAYING){update();$('status').textContent='Музыка играет — кликай быстрее!'}},
+ onError:()=>{$('status').textContent='YouTube не разрешил встроенное воспроизведение. Открой видео по ссылке.'}
+ }});
+}
+update();
+</script></body></html>
