@@ -1,12 +1,14 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#090014">
 <title>SPINNING CAT CLICKER</title>
 <style>
 :root{--pink:#ff28d7;--blue:#00eaff;--green:#54ffb0}
-*{box-sizing:border-box} body{margin:0;min-height:100svh;color:#fff;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(ellipse at 50% 40%,#24104a 0%,#0b0620 46%,#03040c 100%);overflow-x:hidden}
+*{box-sizing:border-box}
+body{margin:0;min-height:100svh;color:#fff;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(ellipse at 50% 40%,#24104a 0%,#0b0620 46%,#03040c 100%);overflow-x:hidden}
 body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(120deg,transparent 30%,#00eaff10,transparent 70%);animation:bg 5s linear infinite}
 @keyframes bg{to{transform:translateX(20%)}}
 .wrap{width:min(100%,520px);margin:auto;padding:22px 18px 28px;position:relative}
@@ -23,100 +25,122 @@ header span{display:block;color:var(--blue);margin-top:8px;text-shadow:0 0 8px v
 @keyframes catspin{to{transform:rotate(360deg)}}
 .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:22px 0 15px}
 .stat{border:1px solid #7b35ff;border-radius:14px;padding:12px 5px;text-align:center;background:#0a0822cc;box-shadow:0 0 12px #7b35ff33}
-.stat small{display:block;color:#c9b5ff;font-size:.75rem}.stat b{display:block;font-size:1.35rem;color:var(--blue);text-shadow:0 0 10px #00dfff}
+.stat small{display:block;color:#c9b5ff;font-size:.75rem}
+.stat b{display:block;font-size:1.35rem;color:var(--blue);text-shadow:0 0 10px #00dfff}
 .tap{width:100%;border:2px solid var(--pink);border-radius:17px;background:linear-gradient(110deg,#250a49,#100b2e);color:white;padding:17px;font-size:1.45rem;font-weight:1000;font-style:italic;letter-spacing:3px;text-shadow:0 0 12px var(--pink);box-shadow:0 0 14px #ff28d777,inset 0 0 12px #00eaff22;touch-action:manipulation}
 .tap:active{transform:scale(.98);background:#3c0c54}
-.row{display:flex;gap:9px;margin-top:10px}.secondary{flex:1;border:1px solid #315bff;border-radius:12px;background:#0b1028;color:#dffaff;padding:11px;font-weight:700}
+.row{display:flex;gap:9px;margin-top:10px}
+.secondary{flex:1;border:1px solid #315bff;border-radius:12px;background:#0b1028;color:#dffaff;padding:11px;font-weight:700}
 .note{text-align:center;color:#9b8dbd;font-size:.78rem;line-height:1.5;margin:15px 0}
 .status{color:#7efbd1;font-size:.8rem;text-align:center;margin-top:8px;min-height:1.2em}
 @media(prefers-reduced-motion:reduce){.ring,.cat{animation-duration:1s}}
 </style>
 </head>
-<body><main class="wrap">
+<body>
+<main class="wrap">
 <header>SPINNING <span>CAT CLICKER</span></header>
 <div class="sub">MORE TAPS • MORE SPEED • MORE CHAOS</div>
 <div class="stage" aria-label="Кликни на кота">
- <div class="ring"></div><div class="ring r2"></div><div class="ring r3"></div>
- <button class="catbutton" id="catBtn" aria-label="Кликнуть на кота"><span class="cat" id="cat">🐈</span></button>
+  <div class="ring"></div>
+  <div class="ring r2"></div>
+  <div class="ring r3"></div>
+  <button class="catbutton" id="catBtn" aria-label="Кликнуть на кота"><span class="cat" id="cat">🐈</span></button>
 </div>
 <section class="stats">
- <div class="stat"><small>КЛИКИ</small><b id="clicks">0</b></div>
- <div class="stat"><small>СКОРОСТЬ</small><b id="speed">1.0×</b></div>
- <div class="stat"><small>ТЕМП МУЗЫКИ</small><b id="rate">1.0×</b></div>
+  <div class="stat"><small>КЛИКИ</small><b id="clicks">0</b></div>
+  <div class="stat"><small>СКОРОСТЬ</small><b id="speed">1.0×</b></div>
+  <div class="stat"><small>ТЕМП МУЗЫКИ</small><b id="rate">1.0×</b></div>
 </section>
 <button class="tap" id="tapBtn">TAP TO SPIN</button>
-<div class="row"><button class="secondary" id="musicBtn">▶ ВКЛЮЧИТЬ МУЗЫКУ</button><button class="secondary" id="resetBtn">↻ СБРОС</button></div>
+<div class="row">
+  <button class="secondary" id="musicBtn">▶ ВКЛЮЧИТЬ МУЗЫКУ</button>
+  <button class="secondary" id="resetBtn">↻ СБРОС</button>
+</div>
 <div class="status" id="status">Нажми TAP, чтобы запустить хаос.</div>
 <audio id="audio" src="spinning_cat.mp3" loop preload="auto"></audio>
-<div class="note">Работает в браузере · Добавь на главный экран для ощущения приложения<br>Положи файл <b>spinning_cat.mp3</b> рядом с этим html</div>
+<div class="note">Работает в браузере · Добавь на главный экран для ощущения приложения<br>Файл <b>spinning_cat.mp3</b> должен лежать рядом с этим html</div>
 </main>
 <script>
-const $=id=>document.getElementById(id);
-let clicks=0, tapTimes=[], rate=1;
-const audio=$('audio');
+const $ = id => document.getElementById(id);
+let clicks = 0, tapTimes = [], rate = 1;
+const audio = $('audio');
 
-function update(){
-  const now=performance.now();
-  tapTimes=tapTimes.filter(t=>now-t<1800);
-  const cps=tapTimes.length/1.8;
+function update() {
+  const now = performance.now();
+  tapTimes = tapTimes.filter(t => now - t < 1800);
+  const cps = tapTimes.length / 1.8;
 
-  // скорость кота — жёстче разгон
-  const speed=Math.min(1+clicks*.04+cps*2.4,120);
-  $('clicks').textContent=clicks.toLocaleString('ru-RU');
-  $('speed').textContent=speed.toFixed(1)+'×';
-  $('cat').style.animationDuration=(Math.max(.03,3/speed))+'s';
-  document.querySelectorAll('.ring').forEach((el,i)=>{
-    el.style.animationDuration=(Math.max(.05,[4,2.5,6][i]/Math.min(speed,60)))+'s';
+  // жёсткий разгон кота
+  const speed = Math.min(1 + clicks * 0.04 + cps * 2.4, 120);
+  $('clicks').textContent = clicks.toLocaleString('ru-RU');
+  $('speed').textContent = speed.toFixed(1) + '×';
+  $('cat').style.animationDuration = (Math.max(0.03, 3 / speed)) + 's';
+  document.querySelectorAll('.ring').forEach((el, i) => {
+    el.style.animationDuration = (Math.max(0.05, [4, 2.5, 6][i] / Math.min(speed, 60))) + 's';
   });
 
-  // темп музыки — очень жёсткий разгон, потолок 12×
-  const desired=Math.min(1+cps*1.4+clicks*.008,12);
-  rate=desired;
-  $('rate').textContent=rate.toFixed(2)+'×';
+  // очень жёсткий разгон музыки, потолок 12×
+  const desired = Math.min(1 + cps * 1.4 + clicks * 0.008, 12);
+  rate = desired;
+  $('rate').textContent = rate.toFixed(2) + '×';
 
-  if(audio && !audio.paused){
-    try{audio.playbackRate=rate}catch(e){}
+  if (audio && !audio.paused) {
+    try { audio.playbackRate = rate; } catch (e) {}
   }
 }
 
-function tap(){
+function tap() {
   clicks++;
   tapTimes.push(performance.now());
   update();
-  $('status').textContent=clicks%100===0?'НЕВЕРОЯТНО. '+clicks+' КЛИКОВ!':'КОТ НАБИРАЕТ ОБОРОТЫ!';
-  if(navigator.vibrate)navigator.vibrate(8);
+  $('status').textContent = clicks % 100 === 0 ? 'НЕВЕРОЯТНО. ' + clicks + ' КЛИКОВ!' : 'КОТ НАБИРАЕТ ОБОРОТЫ!';
+  if (navigator.vibrate) navigator.vibrate(8);
 }
 
-$('tapBtn').addEventListener('click',tap);
-$('catBtn').addEventListener('click',tap);
+$('tapBtn').addEventListener('click', tap);
+$('catBtn').addEventListener('click', tap);
 
-$('resetBtn').addEventListener('click',()=>{
-  clicks=0;
-  tapTimes=[];
+$('resetBtn').addEventListener('click', () => {
+  clicks = 0;
+  tapTimes = [];
   update();
-  $('status').textContent='Счёт сброшен. Начинай заново.';
+  $('status').textContent = 'Счёт сброшен. Начинай заново.';
 });
 
-$('musicBtn').addEventListener('click',()=>{
-  if(audio.paused){
-    audio.play().then(()=>{
-      audio.playbackRate=rate;
-      $('status').textContent='Музыка включена — кликай быстрее!';
-      $('musicBtn').textContent='⏸ ВЫКЛЮЧИТЬ МУЗЫКУ';
-    }).catch(()=>{
-      $('status').textContent='Браузер заблочил автоплей. Кликни ещё раз.';
-    });
-  }else{
+$('musicBtn').addEventListener('click', async () => {
+  if (audio.paused) {
+    try {
+      audio.volume = 1;
+      audio.muted = false;
+      await audio.play();
+      audio.playbackRate = rate;
+      $('status').textContent = 'Музыка включена — кликай быстрее!';
+      $('musicBtn').textContent = '⏸ ВЫКЛЮЧИТЬ МУЗЫКУ';
+    } catch (err) {
+      console.error(err);
+      $('status').textContent = 'Не удалось запустить: ' + (err.message || 'ошибка автоплея');
+    }
+  } else {
     audio.pause();
-    $('status').textContent='Музыка выключена.';
-    $('musicBtn').textContent='▶ ВКЛЮЧИТЬ МУЗЫКУ';
+    $('status').textContent = 'Музыка выключена.';
+    $('musicBtn').textContent = '▶ ВКЛЮЧИТЬ МУЗЫКУ';
   }
 });
 
-audio.addEventListener('play',()=>{audio.playbackRate=rate});
-audio.addEventListener('error',()=>{
-  $('status').textContent='Не нашёл spinning_cat.mp3. Положи файл рядом с html.';
+audio.addEventListener('play', () => {
+  audio.playbackRate = rate;
+});
+
+audio.addEventListener('error', (e) => {
+  const code = audio.error ? audio.error.code : '?';
+  $('status').textContent = 'Ошибка загрузки mp3 (код ' + code + '). Проверь имя файла и путь.';
+});
+
+audio.addEventListener('loadeddata', () => {
+  console.log('mp3 загружен, длительность:', audio.duration);
 });
 
 update();
-</script></body></html>
+</script>
+</body>
+</html>
